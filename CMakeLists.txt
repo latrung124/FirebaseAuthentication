@@ -5,11 +5,8 @@ project(Login-Module VERSION 1.0.0)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# SET(HEADER_FILES
-# )
-
-# SET(SOURCE_FILES
-# )
+# Define the source directory as a macro
+add_definitions(-DSOURCE_DIR="${CMAKE_SOURCE_DIR}")
 
 # Define platform-specific required libraries
 if(WIN32)
@@ -50,20 +47,39 @@ else()
     message(FATAL_ERROR "Unsupported platform")
 endif()
 
-add_executable(Login-Module main.cpp)
+set(HEADER_FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/FirebaseApp.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AppAuthStateListener.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AppAuthentication.h)
 
-add_subdirectory(third_party/firebase_cpp_sdk)
+set(SOURCE_FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/FirebaseApp.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AppAuthStateListener.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AppAuthentication.cpp)
 
-# Link the dependencies libraries
+add_executable(Login-Module
+    ${HEADER_FILES}
+    ${SOURCE_FILES}
+    main.cpp)
+
+# Target include directories
+target_include_directories(Login-Module PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/App
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/firebase_cpp_sdk/include
+    ${CMAKE_CURRENT_BINARY_DIR}/res/values)
+
+# Set link directories
+set(FIREBASE_LIB_DIR
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/firebase_cpp_sdk/libs/Debug)
 
 # Link the Firebase C++ SDK
 target_link_libraries(Login-Module PUBLIC 
-    firebase_auth 
-    firebase_app
+    ${FIREBASE_LIB_DIR}/firebase_auth.lib
+    ${FIREBASE_LIB_DIR}/firebase_app.lib
     ${REQUIRED_LIBS})
 
 # Set the path to your google-services.json
-set(GOOGLE_SERVICES_JSON "${CMAKE_CURRENT_SOURCE_DIR}/Resources/google-services.json")
+set(GOOGLE_SERVICES_JSON "${CMAKE_CURRENT_SOURCE_DIR}/google-services.json")
 
 # Verify the file exists
 if(NOT EXISTS ${GOOGLE_SERVICES_JSON})

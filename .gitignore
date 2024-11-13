@@ -1,0 +1,23 @@
+.google-services.json
+
+build/
+
+# Visual Studio Code specific
+.vscode/
+*.code-workspace
+
+# CMake specific
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CMakeLists.txt.user
+Makefile
+
+# Packages
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.tar
+*.zip
