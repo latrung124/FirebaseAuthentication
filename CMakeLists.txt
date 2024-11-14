@@ -50,12 +50,14 @@ endif()
 set(HEADER_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/App/FirebaseApp.h
     ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AppAuthStateListener.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AppAuthentication.h)
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AppAuthentication.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/FirebaseManager.h)
 
 set(SOURCE_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/App/FirebaseApp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AppAuthStateListener.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AppAuthentication.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AppAuthentication.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/FirebaseManager.cpp)
 
 add_executable(Login-Module
     ${HEADER_FILES}
@@ -79,20 +81,18 @@ target_link_libraries(Login-Module PUBLIC
     ${REQUIRED_LIBS})
 
 # Set the path to your google-services.json
-set(GOOGLE_SERVICES_JSON "${CMAKE_CURRENT_SOURCE_DIR}/google-services.json")
+set(SOURCE_GOOGLE_SERVICES_JSON "${CMAKE_CURRENT_SOURCE_DIR}/Resources/google-services.json")
+set(DES_GOOGLE_SERVICES_JSON "${CMAKE_CURRENT_BINARY_DIR}/config.json")
 
-# Verify the file exists
-if(NOT EXISTS ${GOOGLE_SERVICES_JSON})
+if(NOT EXISTS ${SOURCE_GOOGLE_SERVICES_JSON})
     message(FATAL_ERROR "Missing ${GOOGLE_SERVICES_JSON}")
 endif()
 
-# Generate the resource xml from google-services.json
 add_custom_command(
-    OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/res/values/google-services.xml"
-    COMMAND ${PYTHON_EXECUTABLE}
-            "${CMAKE_CURRENT_SOURCE_DIR}/third_party/firebase_cpp_sdk/generate_xml_from_google_services_json.py"
-            --input="${GOOGLE_SERVICES_JSON}"
-            --output="${CMAKE_CURRENT_BINARY_DIR}/res/values/google-services.xml"
-    DEPENDS ${GOOGLE_SERVICES_JSON}
-    COMMENT "Generating google-services.xml from google-services.json"
+    OUTPUT ${DES_GOOGLE_SERVICES_JSON}
+    COMMAND ${CMAKE_COMMAND} -E copy
+            ${SOURCE_GOOGLE_SERVICES_JSON}
+            ${DES_GOOGLE_SERVICES_JSON}
+    DEPENDS ${SOURCE_GOOGLE_SERVICES_JSON}
+    COMMENT "Copying config.json to binary directory"
 )

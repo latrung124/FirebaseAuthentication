@@ -9,13 +9,12 @@
 
 #include <iostream>
 
+namespace {
+    using FireBaseAppPtr = std::shared_ptr<firebase::App>;
+}
+
 FirebaseApp::FirebaseApp() {
     // Initialize Firebase
-    firebase::AppOptions options;
-    options.set_app_id(""); // Set the App ID
-    options.set_api_key(""); // Set the API Key
-    options.set_project_id(""); // Set the Project ID
-    mApp = std::unique_ptr<firebase::App>(firebase::App::Create(options)); // Create a new Firebase App
 }
 
 FirebaseApp::~FirebaseApp() {
@@ -25,4 +24,11 @@ FirebaseApp::~FirebaseApp() {
 
 std::weak_ptr<firebase::App> FirebaseApp::getApp() const {
     return mApp;
+}
+
+bool FirebaseApp::createApp(const char* configPath) {
+    // Initialize Firebase
+    mAppOptions = std::make_unique<firebase::AppOptions>(firebase::AppOptions::LoadFromJsonConfig(configPath));
+    mApp = std::make_shared<firebase::App>(*mAppOptions);
+    return mApp != nullptr;
 }
