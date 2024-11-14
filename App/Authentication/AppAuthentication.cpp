@@ -6,19 +6,24 @@
 */
 
 #include "Authentication/AppAuthentication.h"
+#include "Authentication/AuthProvider/GoogleAuthProvider.h"
+#include "Authentication/AuthProvider/EmailPwAuthProvider.h"
 
 #include <iostream>
 #include <chrono>
 
-AppAuthentication::AppAuthentication(const std::weak_ptr<firebase::App>& app) {
-    auto appPtr = app.lock();
-
-    if (!appPtr) {
+AppAuthentication::AppAuthentication(firebase::App* app) {
+    if (app == nullptr) {
         std::cerr << "Firebase App is null!" << std::endl;
         return;
     }
 
-    mAuth = std::unique_ptr<firebase::auth::Auth>(firebase::auth::Auth::GetAuth(appPtr.get())); // Get the Auth object from the App
+    if (!app) {
+        std::cerr << "Firebase App is null!" << std::endl;
+        return;
+    }
+
+    mAuth = firebase::auth::Auth::GetAuth(app); // Get the Auth object from the App
 
     if (!mAuth) {
         std::cerr << "Failed to initialize Firebase Auth!" << std::endl;
@@ -30,81 +35,79 @@ AppAuthentication::AppAuthentication(const std::weak_ptr<firebase::App>& app) {
 }
 
 AppAuthentication::~AppAuthentication() {
-    mAuth.reset();
+    if (mAuth) {
+        delete mAuth;
+        mAuth = nullptr;
+    }
+}
+
+void AppAuthentication::initializeExternalAuthProviders() {
+    // Initialize external authentication providers
+    mExAuthProviders[UtilAuthProviderType::Google] = std::make_unique<GoogleAuthProvider>(mAuth);
+}
+
+void AppAuthentication::initializeInternalAuthProvider() {
+    // Initialize internal authentication provider
+    mIntAuthProvider = std::make_unique<EmailPwAuthProvider>(mAuth);
+}
+
+bool AppAuthentication::isValid() const {
+    return mAuth != nullptr;
 }
 
 void AppAuthentication::addAppAuthStateListener() {
     mAuth->AddAuthStateListener(new AppAuthStateListener());
 }
 
-bool AppAuthentication::createUserWithEmailAndPassword(const std::string& email, const std::string& password) {
-    firebase::Future<firebase::auth::AuthResult> result = mAuth->CreateUserWithEmailAndPassword(email.c_str(), password.c_str());
-
-    while (result.status() == firebase::kFutureStatusPending) {
-        // Wait until the result is available
-        std::cout << "Signing in...\n";
+bool AppAuthentication::createAccount(UtilAuthProviderType authType, const std::string& email, const std::string& password) {
+    if (authType == UtilAuthProviderType::EmailPassword) {
+        return mIntAuthProvider->createAccount(email, password);
     }
 
-    result.OnCompletion([](const firebase::Future<firebase::auth::AuthResult>& result_data, void* user_data) {
-        if (result_data.error() == firebase::auth::kAuthErrorNone) {
-            std::cout << "User created successfully!" << std::endl;
-        } else {
-            std::cout << "Error creating user: " << result_data.error_message() << std::endl;
-        }
-    }, nullptr);
+    if (mExAuthProviders.find(authType) != mExAuthProviders.end()) {
+        return mExAuthProviders[authType]->createAccount(email, password);
+    }
 
-    return true;
+    std::cerr << "Invalid authentication provider type!" << std::endl;
+    return false;
 }
 
-bool AppAuthentication::loginUserWithEmailAndPassword(const std::string& email, const std::string& password) {
-    firebase::Future<firebase::auth::AuthResult> result = mAuth->SignInWithEmailAndPassword(email.c_str(), password.c_str());
+bool AppAuthentication::login(UtilAuthProviderType authType, const std::string& email, const std::string& password) {
+    if (authType == UtilAuthProviderType::EmailPassword) {
+        return mIntAuthProvider->login(email, password);
+    }
 
-    result.OnCompletion([](const firebase::Future<firebase::auth::AuthResult>& result_data, void* user_data) {
-        if (result_data.error() == firebase::auth::kAuthErrorNone) {
-            std::cout << "User logged in successfully!" << std::endl;
-        } else {
-            std::cout << "Error logging in user: " << result_data.error_message() << std::endl;
-        }
-    }, nullptr);
+    if (mExAuthProviders.find(authType) != mExAuthProviders.end()) {
+        return mExAuthProviders[authType]->login(email, password);
+    }
 
-    return true;
+    std::cerr << "Invalid authentication provider type!" << std::endl;
+    return false;
 }
 
 void AppAuthentication::signOut() {
-    // Sign out the current user
+    if(mAuth == nullptr) {
+        std::cerr << "Firebase Auth is null!" << std::endl;
+        return;
+    }
+
     mAuth->SignOut();
 }
 
 bool AppAuthentication::deleteUser() {
-    auto user = mAuth->current_user();
-    if (!user.is_valid()) {
-        std::cerr << "No user signed in!" << std::endl;
+    if (mIntAuthProvider == nullptr) {
+        std::cerr << "Internal Auth Provider is null!" << std::endl;
         return false;
     }
 
-    auto result = user.Delete();
-    result.OnCompletion([](const firebase::Future<void>& result_data, void* user_data) {
-        if (result_data.error() == firebase::auth::kAuthErrorNone) {
-            std::cout << "User deleted successfully!" << std::endl;
-        } else {
-            std::cout << "Error deleting user: " << result_data.error_message() << std::endl;
-        }
-    }, nullptr);
+    return mIntAuthProvider->deleteUser();
 }
 
 bool AppAuthentication::updatePassword(const std::string& newPassword) {
-    auto user = mAuth->current_user();
-    if (!user.is_valid()) {
-        std::cerr << "No user signed in!" << std::endl;
+    if (mIntAuthProvider == nullptr) {
+        std::cerr << "Internal Auth Provider is null!" << std::endl;
         return false;
     }
 
-    auto result = user.UpdatePassword(newPassword.c_str());
-    result.OnCompletion([](const firebase::Future<void>& result_data, void* user_data) {
-        if (result_data.error() == firebase::auth::kAuthErrorNone) {
-            std::cout << "Password updated successfully!" << std::endl;
-        } else {
-            std::cout << "Error updating password: " << result_data.error_message() << std::endl;
-        }
-    }, nullptr);
+    return mIntAuthProvider->updatePassword(newPassword);
 }

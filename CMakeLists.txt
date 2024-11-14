@@ -5,8 +5,19 @@ project(Login-Module VERSION 1.0.0)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+# Enable or disable log info
+option(ENABLE_LOG_INFO "Enable log info" ON)
+
+if(ENABLE_LOG_INFO)
+    add_definitions(-DLOG_INFO_ENABLED)
+endif()
+
 # Define the source directory as a macro
-add_definitions(-DSOURCE_DIR="${CMAKE_SOURCE_DIR}")
+if(DEFINED ENV{FIREBASE_CONFIG_PATH})
+    add_definitions(-DFIREBASE_CONFIG_PATH="$ENV{FIREBASE_CONFIG_PATH}")
+else()
+    add_definitions(-DFIREBASE_CONFIG_PATH="${CMAKE_CURRENT_SOURCE_DIR}/Resources/config")
+endif()
 
 # Define platform-specific required libraries
 if(WIN32)
@@ -51,13 +62,18 @@ set(HEADER_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/App/FirebaseApp.h
     ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AppAuthStateListener.h
     ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AppAuthentication.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/App/FirebaseManager.h)
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/Utils/AuthUtils.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AuthProvider/AbstractExternalAuthProvider.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AuthProvider/AbstractInternalAuthProvider.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AuthProvider/EmailPwAuthProvider.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AuthProvider/GoogleAuthProvider.h)
 
 set(SOURCE_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/App/FirebaseApp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AppAuthStateListener.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AppAuthentication.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/App/FirebaseManager.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AuthProvider/EmailPwAuthProvider.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AuthProvider/GoogleAuthProvider.cpp)
 
 add_executable(Login-Module
     ${HEADER_FILES}
@@ -81,8 +97,8 @@ target_link_libraries(Login-Module PUBLIC
     ${REQUIRED_LIBS})
 
 # Set the path to your google-services.json
-set(SOURCE_GOOGLE_SERVICES_JSON "${CMAKE_CURRENT_SOURCE_DIR}/Resources/google-services.json")
-set(DES_GOOGLE_SERVICES_JSON "${CMAKE_CURRENT_BINARY_DIR}/config.json")
+set(SOURCE_GOOGLE_SERVICES_JSON "${CMAKE_CURRENT_SOURCE_DIR}/Resources/config/google-services.json")
+set(DES_GOOGLE_SERVICES_JSON "${CMAKE_CURRENT_BINARY_DIR}/Resources/config/google-services.json")
 
 if(NOT EXISTS ${SOURCE_GOOGLE_SERVICES_JSON})
     message(FATAL_ERROR "Missing ${GOOGLE_SERVICES_JSON}")

@@ -6,6 +6,7 @@
 
 const std::map<char, std::string> gCommands {
     {'i', " - Login to firebase cloud with email and account! \n"},
+    {'g', " - Login to firebase cloud with email and account! \n"},
     {'o', " - Sign out! \n"},
     {'a', " - Create account with email and account! \n"},
     {'d', " - Delete current user account! \n"},
@@ -24,6 +25,11 @@ void printCommandLine() {
 int main() {
     std::cout << "Hello, World!" << std::endl;
     FirebaseApp firebaseApp;
+    if (!firebaseApp.initialize()) {
+        std::cout << "Error initializing Firebase App!" << std::endl;
+        return -1;
+    }
+
     AppAuthentication appAuth(firebaseApp.getApp());
 
     printCommandLine();
@@ -45,7 +51,22 @@ int main() {
             std::cout << "Password: ";
             password = "";
             std::cin >> password;
-            if (appAuth.loginUserWithEmailAndPassword(email, password)) {
+            if (appAuth.login(UtilAuthProviderType::EmailPassword, email, password)) {
+                std::cout << "Logging in user..." << std::endl;
+            } else {
+                std::cout << "Error logging in user!" << std::endl;
+            }
+            break;
+        }
+        case 'g': {
+            //login
+            std::cout << "Email: ";
+            email = "";
+            std::cin >> email;
+            std::cout << "Password: ";
+            password = "";
+            std::cin >> password;
+            if (appAuth.login(UtilAuthProviderType::Google, email, password)) {
                 std::cout << "Logging in user..." << std::endl;
             } else {
                 std::cout << "Error logging in user!" << std::endl;
@@ -64,7 +85,7 @@ int main() {
             std::cout << "Password: ";
             password = "";
             std::cin >> password;
-            if (appAuth.createUserWithEmailAndPassword(email, password)) {
+            if (appAuth.createAccount(UtilAuthProviderType::EmailPassword, email, password)) {
                 std::cout << "Creating user account..." << std::endl;
             } else {
                 std::cout << "Error create a user account!" << std::endl;
@@ -80,6 +101,7 @@ int main() {
         }
         case 'e': {
             std::cout << "Close app!\n";
+            firebaseApp.exit();
             exit(0);
         }
         default: {

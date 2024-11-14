@@ -10,19 +10,30 @@
 
 #include "FirebaseApp.h"
 #include "Authentication/AppAuthStateListener.h"
+#include "Authentication/Utils/AuthUtils.h"
 
 #include <firebase/auth.h>
 
 #include <string>
 #include <memory>
+#include <map>
 
+class AbstractExternalAuthProvider;
+class AbstractInternalAuthProvider;
 class AppAuthentication {
 public:
-    AppAuthentication(const std::weak_ptr<firebase::App>& app);
+    explicit AppAuthentication(firebase::App* app);
     ~AppAuthentication();
 
-    bool createUserWithEmailAndPassword(const std::string& email, const std::string& password);
-    bool loginUserWithEmailAndPassword(const std::string& email, const std::string& password);
+    AppAuthentication(const AppAuthentication&) = delete;
+    AppAuthentication& operator=(const AppAuthentication&) = delete;
+    AppAuthentication(AppAuthentication&&) = delete;
+    AppAuthentication& operator=(AppAuthentication&&) = delete;
+
+    bool isValid() const;
+
+    bool login(UtilAuthProviderType authType, const std::string& email, const std::string& password);
+    bool createAccount(UtilAuthProviderType authType, const std::string& email, const std::string& password);
 
     void signOut();
 
@@ -30,10 +41,14 @@ public:
     bool updatePassword(const std::string& newPassword);
 
 private:
+    void initializeExternalAuthProviders();
+    void initializeInternalAuthProvider();
     void addAppAuthStateListener();
 
-    std::unique_ptr<firebase::auth::Auth> mAuth;
+    firebase::auth::Auth* mAuth;
     std::unique_ptr<AppAuthStateListener> mAuthStateListener;
+    std::map<UtilAuthProviderType, std::unique_ptr<AbstractExternalAuthProvider>> mExAuthProviders;
+    std::unique_ptr<AbstractInternalAuthProvider> mIntAuthProvider;
 };
 
 #endif //APP_APPAUTHENTICATION_H

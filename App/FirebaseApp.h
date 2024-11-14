@@ -16,12 +16,14 @@ public:
     FirebaseApp();
     ~FirebaseApp();
 
-    std::weak_ptr<firebase::App> getApp() const;
-    bool createApp(const char* configPath);
+    bool initialize();
+    void exit();
+
+    firebase::App* getApp() const;
 
 private:
-    std::shared_ptr<firebase::App> mApp;
-    std::unique_ptr<firebase::AppOptions> mAppOptions;
+    firebase::App* mApp = nullptr;
+    firebase::AppOptions* mAppOptions = nullptr;
 };
-using FirebaseAppPtr = std::shared_ptr<FirebaseApp>;
+
 #endif //APP_FIREBASEAPP_H

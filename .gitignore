@@ -1,5 +1,9 @@
+# google service config files
 .google-services.json
+Resources/GoogleService-Info.plist
+Resource/google-services.json
 
+# build/ directory
 build/
 
 # Visual Studio Code specific
