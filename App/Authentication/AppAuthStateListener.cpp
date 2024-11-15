@@ -5,6 +5,7 @@
 * This class is responsible for listening to the authentication state of the user.
 */
 
+#include <Logging.h>
 #include "Authentication/AppAuthStateListener.h"
 
 #include <iostream>
@@ -22,15 +23,15 @@ void AppAuthStateListener::OnAuthStateChanged(firebase::auth::Auth* auth) {
     auto user = auth->current_user();
     if (user.is_valid()) {
         // User is signed in
-        std::cout << "User invalid." << std::endl;
+        LOG_WARNING("User is signed in.");
     } else if (user.is_anonymous()) {
         // User is signed in
-        std::cout << "User is anonymous." << std::endl;
+        LOG_WARNING("User is anonymous.");
     } else if (user.is_email_verified()) {
         // User is signed in
-        std::cout << "User email is verified." << std::endl;
+        LOG_WARNING("User is email verified.");
     } else {
         // User is signed out
-        std::cout << "Unknown." << std::endl;
+        LOG_WARNING("User is signed out.");
     }
 }

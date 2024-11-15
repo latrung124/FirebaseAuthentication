@@ -16,8 +16,7 @@ public:
     GoogleAuthProvider(firebase::auth::Auth* authApp) : AbstractExternalAuthProvider(authApp) {}
     ~GoogleAuthProvider() = default;
 
-    bool createAccount(const std::string& email, const std::string& password) override;
-    bool login(const std::string& email, const std::string& password) override;
+    bool login() override;
 };
 
 #endif //GOOGLEAUTHPROVIDER_H

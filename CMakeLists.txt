@@ -59,10 +59,15 @@ else()
 endif()
 
 set(HEADER_FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/Interface/IFirebaseCloud.h
+
     ${CMAKE_CURRENT_SOURCE_DIR}/App/FirebaseApp.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/FirebaseCloudImpl.h
+
     ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AppAuthStateListener.h
     ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AppAuthentication.h
     ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/Utils/AuthUtils.h
+
     ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AuthProvider/AbstractExternalAuthProvider.h
     ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AuthProvider/AbstractInternalAuthProvider.h
     ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AuthProvider/EmailPwAuthProvider.h
@@ -70,8 +75,11 @@ set(HEADER_FILES
 
 set(SOURCE_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/App/FirebaseApp.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/FirebaseCloudImpl.cpp
+
     ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AppAuthStateListener.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AppAuthentication.cpp
+
     ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AuthProvider/EmailPwAuthProvider.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AuthProvider/GoogleAuthProvider.cpp)
 
@@ -81,8 +89,10 @@ add_executable(Login-Module
     main.cpp)
 
 # Target include directories
-target_include_directories(Login-Module PUBLIC
+target_include_directories(Login-Module PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/App
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utils
+    ${CMAKE_CURRENT_SOURCE_DIR}/Interface
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/firebase_cpp_sdk/include
     ${CMAKE_CURRENT_BINARY_DIR}/res/values)
 

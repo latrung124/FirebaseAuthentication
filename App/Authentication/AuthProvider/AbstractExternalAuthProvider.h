@@ -21,8 +21,7 @@ public:
     AbstractExternalAuthProvider& operator=(AbstractExternalAuthProvider&&) = delete;
     ~AbstractExternalAuthProvider() = default;
 
-    virtual bool createAccount(const std::string& email, const std::string& password) = 0;
-    virtual bool login(const std::string& email, const std::string& password) = 0;
+    virtual bool login() = 0;
 
 protected:
     firebase::auth::Auth* mAuth;

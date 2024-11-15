@@ -5,6 +5,7 @@
 * This class is responsible for authenticating the user with Firebase.
 */
 
+#include <Logging.h>
 #include "Authentication/AppAuthentication.h"
 #include "Authentication/AuthProvider/GoogleAuthProvider.h"
 #include "Authentication/AuthProvider/EmailPwAuthProvider.h"
@@ -14,19 +15,19 @@
 
 AppAuthentication::AppAuthentication(firebase::App* app) {
     if (app == nullptr) {
-        std::cerr << "Firebase App is null!" << std::endl;
+        LOG_WARNING("Firebase App is null!");
         return;
     }
 
     if (!app) {
-        std::cerr << "Firebase App is null!" << std::endl;
+        LOG_WARNING("Firebase App is null!");
         return;
     }
 
     mAuth = firebase::auth::Auth::GetAuth(app); // Get the Auth object from the App
 
     if (!mAuth) {
-        std::cerr << "Failed to initialize Firebase Auth!" << std::endl;
+        LOG_WARNING("Failed to initialize Firebase Auth!");
         return;
     }
 
@@ -59,17 +60,9 @@ void AppAuthentication::addAppAuthStateListener() {
     mAuth->AddAuthStateListener(new AppAuthStateListener());
 }
 
-bool AppAuthentication::createAccount(UtilAuthProviderType authType, const std::string& email, const std::string& password) {
-    if (authType == UtilAuthProviderType::EmailPassword) {
-        return mIntAuthProvider->createAccount(email, password);
-    }
+bool AppAuthentication::createAccount(const std::string& email, const std::string& password) {
 
-    if (mExAuthProviders.find(authType) != mExAuthProviders.end()) {
-        return mExAuthProviders[authType]->createAccount(email, password);
-    }
-
-    std::cerr << "Invalid authentication provider type!" << std::endl;
-    return false;
+    return mIntAuthProvider->createAccount(email, password);
 }
 
 bool AppAuthentication::login(UtilAuthProviderType authType, const std::string& email, const std::string& password) {
@@ -78,16 +71,16 @@ bool AppAuthentication::login(UtilAuthProviderType authType, const std::string& 
     }
 
     if (mExAuthProviders.find(authType) != mExAuthProviders.end()) {
-        return mExAuthProviders[authType]->login(email, password);
+        return mExAuthProviders[authType]->login();
     }
 
-    std::cerr << "Invalid authentication provider type!" << std::endl;
+    LOG_WARNING("Login failed!");
     return false;
 }
 
 void AppAuthentication::signOut() {
     if(mAuth == nullptr) {
-        std::cerr << "Firebase Auth is null!" << std::endl;
+        LOG_WARNING("Firebase Auth is null!");
         return;
     }
 
@@ -96,7 +89,7 @@ void AppAuthentication::signOut() {
 
 bool AppAuthentication::deleteUser() {
     if (mIntAuthProvider == nullptr) {
-        std::cerr << "Internal Auth Provider is null!" << std::endl;
+        LOG_WARNING("Internal Auth Provider is null!");
         return false;
     }
 
@@ -105,7 +98,7 @@ bool AppAuthentication::deleteUser() {
 
 bool AppAuthentication::updatePassword(const std::string& newPassword) {
     if (mIntAuthProvider == nullptr) {
-        std::cerr << "Internal Auth Provider is null!" << std::endl;
+        LOG_WARNING("Internal Auth Provider is null!");
         return false;
     }
 

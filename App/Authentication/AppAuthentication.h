@@ -32,8 +32,8 @@ public:
 
     bool isValid() const;
 
-    bool login(UtilAuthProviderType authType, const std::string& email, const std::string& password);
-    bool createAccount(UtilAuthProviderType authType, const std::string& email, const std::string& password);
+    bool login(UtilAuthProviderType authType, const std::string& email = "", const std::string& password = "");
+    bool createAccount(const std::string& email, const std::string& password);
 
     void signOut();
 

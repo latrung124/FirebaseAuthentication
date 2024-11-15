@@ -60,13 +60,7 @@ int main() {
         }
         case 'g': {
             //login
-            std::cout << "Email: ";
-            email = "";
-            std::cin >> email;
-            std::cout << "Password: ";
-            password = "";
-            std::cin >> password;
-            if (appAuth.login(UtilAuthProviderType::Google, email, password)) {
+            if (appAuth.login(UtilAuthProviderType::Google)) {
                 std::cout << "Logging in user..." << std::endl;
             } else {
                 std::cout << "Error logging in user!" << std::endl;
@@ -85,7 +79,7 @@ int main() {
             std::cout << "Password: ";
             password = "";
             std::cin >> password;
-            if (appAuth.createAccount(UtilAuthProviderType::EmailPassword, email, password)) {
+            if (appAuth.createAccount(email, password)) {
                 std::cout << "Creating user account..." << std::endl;
             } else {
                 std::cout << "Error create a user account!" << std::endl;

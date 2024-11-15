@@ -6,6 +6,7 @@
 */
 
 #include "FirebaseApp.h"
+#include <Logging.h>
 
 #include <iostream>
 #include <fstream>
@@ -25,13 +26,13 @@ bool FirebaseApp::initialize() {
     std::cout << "Loading Firebase config file: " << configPath << std::endl;
     std::ifstream file(configPath);
     if (!file.is_open()) {
-        std::cerr << "Error opening Firebase config file!" << std::endl;
+        LOG_WARNING("Failed to open Firebase config file!");
         return false;
     }
     std::string configJson = std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     mAppOptions = firebase::AppOptions::LoadFromJsonConfig(configJson.c_str());
     if (mAppOptions == nullptr) {
-        std::cerr << "Error loading Firebase config file!" << std::endl;
+        LOG_WARNING("Failed to load Firebase config!");
         return false;
     }
 
