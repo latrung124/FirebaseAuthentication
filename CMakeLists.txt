@@ -29,11 +29,13 @@ set(ZLIB_LIBRARY "${CMAKE_SOURCE_DIR}/vcpkg_installed/vcpkg/pkgs/lib_x64-windows
 list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/vcpkg_installed/vcpkg/pkgs/curl_x64-windows/share/curl")
 list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/vcpkg_installed/vcpkg/pkgs/curl_x64-windows/share/curl")
 list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/vcpkg_installed/vcpkg/pkgs/nlohmann-json_x64-windows/share/nlohmann_json")
+list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/vcpkg_installed/vcpkg/pkgs/cpp-httplib_x64-windows/share/httplib")
 
 # Find required libraries
 find_package(ZLIB REQUIRED)
 find_package(CURL CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
+find_package(httplib CONFIG REQUIRED)
 
 # Define platform-specific required libraries
 if(WIN32)
@@ -119,7 +121,7 @@ target_include_directories(Login-Module PRIVATE
 
 # Set link directories
 set(FIREBASE_LIB_DIR
-    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/firebase_cpp_sdk/libs/Debug)
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/firebase_cpp_sdk/libs/Release)
 
 # Link the Firebase C++ SDK
 target_link_libraries(Login-Module PUBLIC 
@@ -127,7 +129,8 @@ target_link_libraries(Login-Module PUBLIC
     ${FIREBASE_LIB_DIR}/firebase_app.lib
     ${REQUIRED_LIBS}
     CURL::libcurl
-    nlohmann_json nlohmann_json::nlohmann_json)
+    nlohmann_json nlohmann_json::nlohmann_json
+    httplib::httplib)
 
 # Set the path to your google-services.json
 set(SOURCE_GOOGLE_SERVICES_JSON "${CMAKE_CURRENT_SOURCE_DIR}/Resources/config/google-services.json")

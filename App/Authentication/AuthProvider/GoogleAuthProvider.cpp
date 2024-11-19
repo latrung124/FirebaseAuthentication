@@ -9,6 +9,16 @@
 
 #include <iostream>
 
+GoogleAuthProvider::GoogleAuthProvider(firebase::auth::Auth* authApp) : AbstractExternalAuthProvider(authApp) {
+    mGoogleOauth = std::make_unique<GoogleOauth>(std::string(FIREBASE_CONFIG_PATH) + "/client_secret_desktop.json");
+}
+
 bool GoogleAuthProvider::login() {
-    return true;
+    if (mGoogleOauth->getAccessToken() == "") {
+        std::cout << "Error getting access token!" << std::endl;
+        return false;
+    } else {
+        std::cout << "Successfully logged in with Google!" << std::endl;
+        return true;
+    }
 }

@@ -9,6 +9,7 @@
 #define AUTHUTILS_H
 
 #include <cstdint>
+#include <string>
 
 namespace authentication {
 
@@ -34,6 +35,16 @@ namespace utils {
         Last,
     };
 } // namespace authentication::utils
+
+struct OAuthConfig {
+    std::string clientId;
+    std::string projectId;
+    std::string clientSecret;
+    std::string redirectUri;
+    std::string authUri;
+    std::string tokenUri;
+    std::string platform;
+};
 
 } // namespace authentication
 

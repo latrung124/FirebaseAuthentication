@@ -2,6 +2,7 @@
     "dependencies": [
         "curl",
         "nlohmann-json",
-        "zlib"
+        "zlib",
+        "cpp-httplib"
     ]
 }

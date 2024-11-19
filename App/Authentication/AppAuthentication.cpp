@@ -30,6 +30,8 @@ AppAuthentication::AppAuthentication(firebase::App* app) {
         LOG_WARNING("Failed to initialize Firebase Auth!");
         return;
     }
+    initializeExternalAuthProviders(); // Initialize external authentication providers
+    initializeInternalAuthProvider(); // Initialize internal authentication provider
 
     // Add an authentication state listener
     addAppAuthStateListener();
