@@ -35,6 +35,9 @@ AppAuthentication::AppAuthentication(firebase::App* app) {
 
     // Add an authentication state listener
     addAppAuthStateListener();
+    
+    initializeInternalAuthProvider();
+    initializeExternalAuthProviders();
 }
 
 AppAuthentication::~AppAuthentication() {

@@ -36,7 +36,9 @@ namespace utils {
     };
 } // namespace authentication::utils
 
-struct OAuthConfig {
+namespace OAuth {
+
+struct UriSchemeConfig {
     std::string clientId;
     std::string projectId;
     std::string clientSecret;
@@ -45,6 +47,8 @@ struct OAuthConfig {
     std::string tokenUri;
     std::string platform;
 };
+
+}; // namespace authentication::OAuth
 
 } // namespace authentication
 

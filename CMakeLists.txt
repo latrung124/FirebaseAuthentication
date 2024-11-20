@@ -19,6 +19,17 @@ else()
     add_definitions(-DFIREBASE_CONFIG_PATH="${CMAKE_CURRENT_SOURCE_DIR}/Resources/config")
 endif()
 
+set(nlohmann_json_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/vcpkg_installed/vcpkg/pkgs/nlohmann-json_x64-windows/include")
+set(httplib_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/vcpkg_installed/vcpkg/pkgs/cpp-httplib_x64-windows/include")
+
+# Define the base path for vcpkg installations
+list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/vcpkg_installed/vcpkg/pkgs/nlohmann-json_x64-windows/share/nlohmann_json")
+list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/vcpkg_installed/vcpkg/pkgs/cpp-httplib_x64-windows/share/httplib")
+
+# Find required libraries
+find_package(nlohmann_json CONFIG REQUIRED)
+find_package(httplib CONFIG REQUIRED)
+
 # Define platform-specific required libraries
 if(WIN32)
     set(REQUIRED_LIBS
@@ -71,7 +82,8 @@ set(HEADER_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AuthProvider/AbstractExternalAuthProvider.h
     ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AuthProvider/AbstractInternalAuthProvider.h
     ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AuthProvider/EmailPwAuthProvider.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AuthProvider/GoogleAuthProvider.h)
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AuthProvider/GoogleAuthProvider.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AuthProvider/GoogleOauth.h)
 
 set(SOURCE_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/App/FirebaseApp.cpp
@@ -81,7 +93,8 @@ set(SOURCE_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AppAuthentication.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AuthProvider/EmailPwAuthProvider.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AuthProvider/GoogleAuthProvider.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AuthProvider/GoogleAuthProvider.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/Authentication/AuthProvider/GoogleOauth.cpp)
 
 add_executable(Login-Module
     ${HEADER_FILES}
@@ -94,17 +107,20 @@ target_include_directories(Login-Module PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils
     ${CMAKE_CURRENT_SOURCE_DIR}/Interface
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/firebase_cpp_sdk/include
-    ${CMAKE_CURRENT_BINARY_DIR}/res/values)
+    ${nlohmann_json_INCLUDE_DIRS}
+    ${httplib_INCLUDE_DIRS})
 
 # Set link directories
 set(FIREBASE_LIB_DIR
-    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/firebase_cpp_sdk/libs/Release)
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/firebase_cpp_sdk/libs/Debug)
 
 # Link the Firebase C++ SDK
 target_link_libraries(Login-Module PUBLIC 
     ${FIREBASE_LIB_DIR}/firebase_auth.lib
     ${FIREBASE_LIB_DIR}/firebase_app.lib
-    ${REQUIRED_LIBS})
+    ${REQUIRED_LIBS}
+    nlohmann_json nlohmann_json::nlohmann_json
+    httplib::httplib)
 
 # Set the path to your google-services.json
 set(SOURCE_GOOGLE_SERVICES_JSON "${CMAKE_CURRENT_SOURCE_DIR}/Resources/config/google-services.json")

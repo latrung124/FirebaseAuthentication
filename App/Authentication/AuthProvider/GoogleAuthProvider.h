@@ -16,7 +16,7 @@
 class GoogleAuthProvider : public AbstractExternalAuthProvider {
 
 public:
-    explicit GoogleAuthProvider(firebase::auth::Auth* authApp);
+    GoogleAuthProvider(firebase::auth::Auth* authApp);
     ~GoogleAuthProvider() = default;
 
     bool login() override;

@@ -5,6 +5,7 @@
 * This class is responsible for authenticating the user with Firebase using Google.
 */
 
+#include <Logging.h>
 #include "Authentication/AuthProvider/GoogleAuthProvider.h"
 
 #include <iostream>
@@ -14,11 +15,18 @@ GoogleAuthProvider::GoogleAuthProvider(firebase::auth::Auth* authApp) : Abstract
 }
 
 bool GoogleAuthProvider::login() {
-    if (mGoogleOauth->getAccessToken() == "") {
-        std::cout << "Error getting access token!" << std::endl;
+    std::string code = mGoogleOauth->getAccessToken();
+
+    if (code.empty()) {
+        LOG_WARNING("Failed to get access token!");
         return false;
-    } else {
-        std::cout << "Successfully logged in with Google!" << std::endl;
-        return true;
     }
+
+    std::string token = mGoogleOauth->exchangeAccessToken(code);
+    auto json = nlohmann::json::parse(token);
+    auto accessToken = json["access_token"].get<std::string>();
+    auto refresh_token = json["refresh_token"].get<std::string>();
+
+    firebase::auth::Credential credential = firebase::auth::GoogleAuthProvider::GetCredential("", accessToken.c_str());
+    return true;
 }

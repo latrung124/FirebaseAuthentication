@@ -8,7 +8,6 @@
 #include "Authentication/Utils/AuthUtils.h"
 
 #include <string>
-#include <curl/curl.h>
 #include <nlohmann/json.hpp>
 
 class GoogleOauth {
@@ -17,12 +16,11 @@ public:
     ~GoogleOauth() = default;
 
     std::string getAccessToken();
-    std::string getUserInfo(const std::string& accessToken);
+    std::string exchangeAccessToken(const std::string& accessToken);
 
 private:
-    bool readConfig(const std::string& configPath);
+    bool readConfig(const std::string &configPath);
     std::string generateAuthorizationUrl();
 
-    authentication::OAuthConfig mOAuthConfig;
-    std::string mCurrentPort = "0";
+    authentication::OAuth::UriSchemeConfig mOAuthConfig;
 };

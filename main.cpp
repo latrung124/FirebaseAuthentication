@@ -6,7 +6,7 @@
 
 const std::map<char, std::string> gCommands {
     {'i', " - Login to firebase cloud with email and account! \n"},
-    {'g', " - Login to firebase cloud with email and account! \n"},
+    {'g', " - Login with Google account! \n"},
     {'o', " - Sign out! \n"},
     {'a', " - Create account with email and account! \n"},
     {'d', " - Delete current user account! \n"},
@@ -32,7 +32,6 @@ int main() {
 
     AppAuthentication appAuth(firebaseApp.getApp());
 
-    printCommandLine();
     std::string email = "";
     std::string password = "";
 
