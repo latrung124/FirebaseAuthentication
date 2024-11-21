@@ -34,7 +34,7 @@ private:
     std::thread mServerThread;
     std::unique_ptr<httplib::Server> mServer;
     std::mutex mMutex;
-    std::string mAuthCode;
+    std::string mAuthToken;
     std::condition_variable mCondVar;
     bool mCodeReceived = false;
 };

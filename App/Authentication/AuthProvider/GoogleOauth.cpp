@@ -16,7 +16,7 @@ GoogleOauth::GoogleOauth(const std::string &configPath)
     : mOAuthConfig({})
     , mToken("")
     , mServer(std::make_unique<httplib::Server>())
-    , mAuthCode("")
+    , mAuthToken("")
 {
     if (!readConfig(configPath)) {
         LOG_WARNING("Error reading config file!");
@@ -33,14 +33,14 @@ std::string GoogleOauth::getAccessToken() {
     std::string url = generateAuthorizationUrl();
     std::system(("start \"\" \"" + url + "\"").c_str());
 
-    mAuthCode = "";
+    std::string authCode = "";
 
     // httplib::Server server;
     mServer->Get("/", [&](const httplib::Request& req, httplib::Response& res) {
         {
             std::lock_guard<std::mutex> lock(mMutex);
             if (req.has_param("code")) {
-                mAuthCode = req.get_param_value("code");
+                authCode = req.get_param_value("code");
                 res.set_content("Authorization code received! You can close this window now!", "text/html");
                 mCodeReceived = true;
             } else {
@@ -59,24 +59,38 @@ std::string GoogleOauth::getAccessToken() {
         mCondVar.wait(lock, [this] { return mCodeReceived; });
     }
 
-    mServerThread.join();
+    if (authCode.empty()) {
+        return "";
+    }
 
-    return mAuthCode;
+    mAuthToken = exchangeAccessToken(authCode);
+
+    mServerThread.detach();
+
+    return mAuthToken;
 }
 
-std::string GoogleOauth::exchangeAccessToken(const std::string& accessToken) {
-    httplib::Client client(mOAuthConfig.tokenUri.c_str());
-    httplib::Params params = {
-        {"code", accessToken.c_str()},
-        {"client_id", mOAuthConfig.clientId.c_str()},
-        {"client_secret", mOAuthConfig.clientSecret.c_str()},
-        {"redirect_uri", std::string(mOAuthConfig.redirectUri + ":8080").c_str()},
-        {"grant_type", "refresh_token"},
-    };
+std::string GoogleOauth::exchangeAccessToken(const std::string& authCode) {
+    std::lock_guard<std::mutex> lock(mMutex);
+    httplib::Client client("oauth2.googleapis.com");
 
-    auto response = client.Post("/token", params);
-    if (response && response->status == 200) {
+    std::cout << "accessToken: " << authCode << std::endl;
+    std::string body = "code=" + authCode + "&client_id="
+    + mOAuthConfig.clientId + "&client_secret="
+    + mOAuthConfig.clientSecret + "&redirect_uri="
+    + mOAuthConfig.redirectUri + ":8080" + "&grant_type=authorization_code";
+
+    auto response = client.Post("/token", body, "application/x-www-form-urlencoded");
+    if (response) {
+        if (response->status != 200) {
+            std::cout << "Error exchanging access token! Status: " << response->status
+            << ", Body: " << response->body << std::endl;
+            return "";
+        }
         return response->body;
+    } else {
+        // Handle error cases
+        std::cout << "Error exchanging access token!" << std::endl;
     }
 
     return "";

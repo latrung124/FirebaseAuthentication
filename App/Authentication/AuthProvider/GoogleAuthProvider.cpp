@@ -16,14 +16,13 @@ GoogleAuthProvider::GoogleAuthProvider(firebase::auth::Auth* authApp) : Abstract
 }
 
 bool GoogleAuthProvider::login() {
-    std::string code = mGoogleOauth->getAccessToken();
+    std::string token = mGoogleOauth->getAccessToken();
 
-    if (code.empty()) {
+    if (token.empty()) {
         LOG_WARNING("Failed to get access token!");
         return false;
     }
 
-    std::string token = mGoogleOauth->exchangeAccessToken(code);
     auto json = nlohmann::json::parse(token);
     auto accessToken = json["access_token"].get<std::string>();
     auto refresh_token = json["refresh_token"].get<std::string>();
