@@ -6,15 +6,26 @@
 */
 
 #include "Authentication/AuthProvider/GoogleOauth.h"
+
+#include <nlohmann/json.hpp>
 #include <Logging.h>
-
-#include <cstdlib>
-#include <httplib.h>
 #include <fstream>
+#include <httplib.h>
 
-GoogleOauth::GoogleOauth(const std::string &configPath) {
+GoogleOauth::GoogleOauth(const std::string &configPath)
+    : mOAuthConfig({})
+    , mToken("")
+    , mServer(std::make_unique<httplib::Server>())
+    , mAuthCode("")
+{
     if (!readConfig(configPath)) {
         LOG_WARNING("Error reading config file!");
+    }
+}
+
+GoogleOauth::~GoogleOauth() {
+    if (mServer) {
+        mServer->stop();
     }
 }
 
@@ -22,25 +33,35 @@ std::string GoogleOauth::getAccessToken() {
     std::string url = generateAuthorizationUrl();
     std::system(("start \"\" \"" + url + "\"").c_str());
 
-    httplib::Server server;
-    std::string authCode = "";
+    mAuthCode = "";
 
-    server.Get("/", [&](const httplib::Request& req, httplib::Response& res) {
-        if (req.has_param("code")) {
-            authCode = req.get_param_value("code");
-            res.set_content("Authorization code received! You can close this window now!", "text/html");
-        } else {
-            res.set_content("Authorization code not received! You can close this window now!", "text/html");
+    // httplib::Server server;
+    mServer->Get("/", [&](const httplib::Request& req, httplib::Response& res) {
+        {
+            std::lock_guard<std::mutex> lock(mMutex);
+            if (req.has_param("code")) {
+                mAuthCode = req.get_param_value("code");
+                res.set_content("Authorization code received! You can close this window now!", "text/html");
+                mCodeReceived = true;
+            } else {
+                res.set_content("Authorization code not received! You can close this window now!", "text/html");
+            }
         }
+        mCondVar.notify_one();
     });
 
-    std::thread serverThread([&server]() {
-        server.listen("localhost", 8080);
+    mServerThread = std::thread([this] {
+        mServer->listen("localhost", 8080);
     });
 
-    serverThread.join();
+    {
+        std::unique_lock<std::mutex> lock(mMutex);
+        mCondVar.wait(lock, [this] { return mCodeReceived; });
+    }
 
-    return authCode;
+    mServerThread.join();
+
+    return mAuthCode;
 }
 
 std::string GoogleOauth::exchangeAccessToken(const std::string& accessToken) {

@@ -5,10 +5,11 @@
 * This class is responsible for authenticating the user with Firebase using Google.
 */
 
-#include <Logging.h>
 #include "Authentication/AuthProvider/GoogleAuthProvider.h"
 
+#include <Logging.h>
 #include <iostream>
+#include <nlohmann/json.hpp>
 
 GoogleAuthProvider::GoogleAuthProvider(firebase::auth::Auth* authApp) : AbstractExternalAuthProvider(authApp) {
     mGoogleOauth = std::make_unique<GoogleOauth>(std::string(FIREBASE_CONFIG_PATH) + "/client_secret_desktop.json");
